@@ -1,0 +1,37 @@
+<html>
+<head>
+	<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
+	<script src="/jquery-1.8.3.min.js"></script>
+	<script src="/bootstrap/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<div class="container">
+		<div class="hero-unit"> 
+			<h1> Gate </h1>
+			<p> 伯仲管理 </p>
+			<button id="go" class="btn btn-primary btn-large"> test </button>
+		</div>
+		<table id="list" class="table table-condensed">
+		</table>
+	</div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://localhost');
+  $("#go").click(function(){
+	  socket.emit("log",  { timeIn: new Date().getTime() });
+  });
+  socket.emit("listready", {});
+  socket.on('list', function (data) { 
+	  $("#list").html("");
+	  data.forEach(function(d, i){
+		  s = "<tr><td>"+i+"</td><td>"+d.timeIn + "</td><td>"+ d.timeOut + "</td></tr>"; 
+		  $("#list").append(s);
+	  });
+	  setTimeout(function(){
+		  console.log("listready");
+		  socket.emit("listready", {})
+	  }, 3000);
+  });
+</script>
+</html>
