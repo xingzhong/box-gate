@@ -10,14 +10,20 @@
 		<div class="hero-unit"> 
 			<h1> WaterFlow </h1>
 			<p> 流水 </p>
-			<button id="go" class="btn btn-primary btn-large"> test </button>
+			<button id="single" class="btn btn-primary btn-large"> single test </button>
+			<button id="stress" class="btn btn-primary btn-large"> stress test </button>
+			<button id="cleanDB" class="btn btn-primary btn-large"> CleanDB </button>
+			<p id="debug"></p>
 		</div>
 		<table class="table table-condensed">
 			<thead>
 				<tr>
-					<th> Time </th>
-					<th> User ID </th>
-					<th> Dept ID</th>
+					<th> Datetime </th>
+					<th> Depth </th>
+					<th> Lat</th>
+					<th> Lon</th>
+					<th> Magnitude</th>
+					<th> Region</th>
 					<th> Operator </th>
 				</tr>
 			</thead>
@@ -28,15 +34,58 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
   var socket = io.connect('http://box.home:8080');
-  $("#go").click(function(){
+  var DATACOUNT = 0;
+  $("#cleanDB").click(function(){
+  	socket.emit("cleanDB", {});
+  });
+  $("#single").click(function(){
 	  console.log("log");
 	  socket.emit("log",  { 
-	  	timeIn: new Date().getTime(),
-	  	uid: Math.floor(Math.random() * 1001),
-	  	did: Math.floor(Math.random() * 11), 
+	  	Datetime: Date.parse("Sunday, January 13, 2013 18:25:13 UTC"),
+	  	Depth: parseFloat("117.00"),
+	  	Eqid: "13013005", 
+	  	Lat: parseFloat("18.5111"),
+	  	Lon: parseFloat("-63.9692"),
+	  	Magnitude: parseFloat("2.8") , 
+	  	NST: parseInt("5"),
+	  	Region: "Virgin Islands region",
+	  	Src: "pr",
+	  	Version: parseInt("0"),
 	  });
   });
+
+  $("#stress").click(function(){
+  	d3.csv("/data/eqs7day-M1.csv",
+  		function (err, data) {
+  			//socket.emit("log",  data[0] );
+  			data.forEach(function(d){
+  				
+  				d.Datetime = Date.parse(d.Datetime);
+  				d.Depth = parseFloat(d.Depth);
+  				d.Lat = parseFloat(d.Lat);
+  				d.Lon = parseFloat(d.Lon);
+  				d.Magnitude = parseFloat(d.Magnitude);
+  				d.NST = parseInt(d.NST);
+  				d.Version = d.Version;
+  				
+  			})
+			var index = 0;
+			DATACOUNT = data.length;
+			var timer = setInterval( 
+				function(){
+					socket.emit("log",  data[index] );
+					//console.log(data[index]);
+					//console.log(index);
+					index++;
+					if (index >= data.length) {
+						clearInterval(timer);
+					}
+					
+				}, 1);
+		});
+  });
   socket.emit("listready", {});
+  socket.emit("count", {})
   socket.on('list', function (data) { 
 	  $("tbody#list").html("");
 	  table = d3.select("tbody#list");
@@ -45,13 +94,17 @@
 	  		.enter().append("tr");
 
 	  tr.append("td")
-	  	.text(function(d){return d.timeIn;});
-
+	  	.text(function(d){return d.Datetime;});
 	  tr.append("td")
-	  	.text(function(d){return d.uid;});
-
+	  	.text(function(d){return d.Depth;});
 	  tr.append("td")
-	  	.text(function(d){return d.did;});
+	  	.text(function(d){return d.Lat;});
+	  tr.append("td")
+	  	.text(function(d){return d.Lon;});
+	  tr.append("td")
+	  	.text(function(d){return d.Magnitude;});
+	  tr.append("td")
+	  	.text(function(d){return d.Region;});
 
 	  tr.append("td")
 	  	.append("i")
@@ -64,7 +117,13 @@
 	  setTimeout(function(){
 		  console.log("listready");
 		  socket.emit("listready", {})
-	  }, 3000);
+	  }, 10000);
+  });
+  socket.on('countReady', function (data) { 
+  	$("#debug").text("total num " + data + " / " + DATACOUNT);
+  	setTimeout(function(){
+		  socket.emit("count", {})
+	  }, 1000);
   });
 </script>
 </html>
