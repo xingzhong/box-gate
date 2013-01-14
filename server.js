@@ -70,7 +70,7 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('listready', function (data) {
       Record.find()
-  		.sort({timeIn: -1})
+  		.sort({Datetime: -1})
   		.limit(20)
   		.exec(function(err, records) {
       	if (!err) {
