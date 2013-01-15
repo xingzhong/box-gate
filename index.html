@@ -13,16 +13,34 @@
 			<button id="single" class="btn btn-primary btn-large"> single test </button>
 			<button id="stress" class="btn btn-primary btn-large"> stress test </button>
 			<button id="cleanDB" class="btn btn-primary btn-large"> CleanDB </button>
+			<button id="analytical" class="btn btn-primary btn-large"> Analytical </button>
 			<p id="debug"></p>
 		</div>
-		<table class="table table-condensed">
+		<ul class= "thumbnails" id="regionTbl">
+			<li class="span4">
+				<div class="thumbnail">
+					<h3> top region </h3>
+					<table class="table table-condensed" >
+						<thead>
+							<tr>
+								<th> region </th>
+								<th> # </th>
+							</tr>
+						</thead>
+						<tbody id="topTable"></tbody>
+					</table>
+				</div>
+			</li>
+		</ul>
+
+		<table class="table table-condensed" style="font-size:12px">
 			<thead>
 				<tr>
-					<th> Datetime </th>
-					<th> Depth </th>
+					<th><button class="btn btn-block btn-inverse" id="order1"> Datetime </button></th>
+					<th><button class="btn btn-block btn-inverse" id="order2"> Depth </button></th>
 					<th> Lat</th>
 					<th> Lon</th>
-					<th> Magnitude</th>
+					<th><button class="btn btn-block btn-inverse" id="order3"> Magnitude </button></th>
 					<th> Region</th>
 					<th> Operator </th>
 				</tr>
@@ -35,6 +53,33 @@
 <script>
   var socket = io.connect('http://box.home:8080');
   var DATACOUNT = 0;
+  var TABLEORDER = "Datetime";
+  $("#regionTbl").hide();
+  $("#debug").hide();
+  $("#order1").click(function(){
+  	if (TABLEORDER[0]=="-")
+  		TABLEORDER = "Datetime"; 
+  	else
+  		TABLEORDER = "-Datetime"; 
+  	socket.emit("listready", TABLEORDER);
+  });
+  $("#order2").click(function(){ 
+  	if (TABLEORDER[0]=="-")
+  		TABLEORDER = "Depth"; 
+  	else
+  		TABLEORDER = "-Depth"; 
+  	socket.emit("listready", TABLEORDER);
+  });
+  $("#order3").click(function(){ 
+  	if (TABLEORDER[0]=="-")
+  		TABLEORDER = "Magnitude"; 
+  	else
+  		TABLEORDER = "-Magnitude"; 
+  	socket.emit("listready", TABLEORDER); 
+  });
+  $("#analytical").click(function(){
+  	socket.emit("mapreduce", {});
+  });
   $("#cleanDB").click(function(){
   	socket.emit("cleanDB", {});
   });
@@ -84,7 +129,7 @@
 				}, 1);
 		});
   });
-  socket.emit("listready", {});
+  socket.emit("listready", TABLEORDER);
   socket.emit("count", {})
   socket.on('list', function (data) { 
 	  $("tbody#list").html("");
@@ -115,15 +160,31 @@
 	  	.attr("class", "icon-remove");
 	  
 	  setTimeout(function(){
-		  console.log("listready");
-		  socket.emit("listready", {})
+	  		console.log("list ordered by "+ TABLEORDER);
+		  	socket.emit("listready", TABLEORDER);
 	  }, 10000);
   });
   socket.on('countReady', function (data) { 
+  	$("#debug").show(500);
   	$("#debug").text("total num " + data + " / " + DATACOUNT);
   	setTimeout(function(){
 		  socket.emit("count", {})
 	  }, 1000);
+  });
+
+  socket.on('mapreduceReday', function (data) { 
+  	console.log(data);
+  	$("#regionTbl").show(2000);
+  	var table = d3.select("#topTable");
+  	table.html("");
+  	table.attr("style", "font-size:12px;");
+  	var tr = table.selectAll("tr")
+  				.data(data)
+  				.enter().append("tr");
+  	tr.append("td")
+  		.text(function(d) {return d._id;});
+  	tr.append("td")
+  		.text(function(d) {return d.value;});
   });
 </script>
 </html>

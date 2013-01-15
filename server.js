@@ -69,19 +69,43 @@ io.sockets.on('connection', function (socket) {
   });
 
   socket.on('listready', function (data) {
+    sorted = "Datetime";
+    if (data) {
+      sorted = data;
+    }
+    console.log("sorted: " + sorted);
       Record.find()
-  		.sort({Datetime: -1})
-  		.limit(20)
-  		.exec(function(err, records) {
-      	if (!err) {
-      		socket.emit('list', records);
-     	}});
+  		  .sort(sorted)
+  		  .limit(20)
+  		  .exec(function(err, records) {
+      	 if (!err) {
+      		  socket.emit('list', records);
+     	  }});
   });
 
   socket.on("count", function(data) {
     Record.count({}, function(err, count) {
       if (!err) {
         socket.emit("countReady", count);
+      }
+    });
+  });
+
+  socket.on("mapreduce", function(data) {
+    var o = {};
+    o.map = function() { emit(this.Region, 1)};
+    o.reduce = function(k, vals) { return vals.length; };
+    o.out = {replace : "mapreduce_example"};
+    o.verbose = true;
+    Record.mapReduce(o, function(err, model, stats) {
+      if (!err) {
+        console.log("mapReduce took %d ms", stats.processtime);
+        model.find()
+          .sort("-value")
+          .limit(10)
+          .exec(function (err, records) {
+            socket.emit("mapreduceReday", records);
+          });
       }
     });
   });
