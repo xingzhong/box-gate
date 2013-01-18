@@ -91,11 +91,11 @@ io.sockets.on('connection', function (socket) {
     });
   });
 
-  socket.on("mapreduce", function(data) {
+  socket.on("mapreduce1", function(data) {
     var o = {};
     o.map = function() { emit(this.Region, 1)};
     o.reduce = function(k, vals) { return vals.length; };
-    o.out = {replace : "mapreduce_example"};
+    o.out = {replace : "mapreduce_example1"};
     o.verbose = true;
     Record.mapReduce(o, function(err, model, stats) {
       if (!err) {
@@ -104,11 +104,35 @@ io.sockets.on('connection', function (socket) {
           .sort("-value")
           .limit(10)
           .exec(function (err, records) {
-            socket.emit("mapreduceReday", records);
+            socket.emit("mapreduce1Reday", records);
           });
       }
     });
   });
+
+  socket.on("mapreduce2", function(data) {
+    var o = {};
+    o.map = function() {
+      var date = new Date();
+      date.setTime(this.Datetime.setUTCMinutes(0,0,0));
+      emit(date.getTime(), 1);
+    };
+    o.reduce = function(k, vals) { return vals.length; };
+    o.out = {replace : "mapreduce_example2"};
+    o.verbose = true;
+    Record.mapReduce(o, function(err, model, stats) {
+      if (!err) {
+        console.log("mapReduce took %d ms", stats.processtime);
+        model.find()
+          .sort("_id")
+          //.limit(20)
+          .exec(function (err, records) {
+            socket.emit("mapreduce2Reday", records);
+          });
+      }
+    });
+  });
+
 });
 
 

@@ -4,6 +4,24 @@
 	<script src="/jquery-1.8.3.min.js"></script>
 	<script src="/bootstrap/js/bootstrap.min.js"></script>
 	<script src="/d3.v3.min.js"></script>
+	<script src="/rickshaw.min.js"></script>
+	<link rel="stylesheet" href="/rickshaw.min.css">
+	<style>
+		#chart_container{
+			position: relative;
+		}
+
+		#chart{
+			position: relative;
+			left: 40px;
+		}
+		#y_axis {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			width: 40px;
+		}
+	</style>
 </head>
 <body>
 	<div class="container">
@@ -29,6 +47,15 @@
 						</thead>
 						<tbody id="topTable"></tbody>
 					</table>
+				</div>
+			</li>
+			<li class="span8">
+				<div class="thumbnail">
+					<h3> Histogram </h3>
+					<div id="chart_container">
+						<div id="y_axis"></div>
+						<div id="chart"></div>
+					</div>
 				</div>
 			</li>
 		</ul>
@@ -78,7 +105,8 @@
   	socket.emit("listready", TABLEORDER); 
   });
   $("#analytical").click(function(){
-  	socket.emit("mapreduce", {});
+  	socket.emit("mapreduce1", {});
+  	socket.emit("mapreduce2", {});
   });
   $("#cleanDB").click(function(){
   	socket.emit("cleanDB", {});
@@ -172,8 +200,8 @@
 	  }, 1000);
   });
 
-  socket.on('mapreduceReday', function (data) { 
-  	console.log(data);
+  socket.on('mapreduce1Reday', function (data) { 
+  	//console.log(data);
   	$("#regionTbl").show(2000);
   	var table = d3.select("#topTable");
   	table.html("");
@@ -186,5 +214,37 @@
   	tr.append("td")
   		.text(function(d) {return d.value;});
   });
+
+
+  socket.on('mapreduce2Reday', function (data) { 
+  	
+  	data.forEach(function(d){
+  		d.x = d._id/1000;
+  		d.y = d.value;
+  	});
+  	console.log(data);
+  	var graph = new Rickshaw.Graph({
+  		element: document.querySelector("#chart"),
+  		renderer: 'bar',
+  		series: [{
+  			color : 'steelblue',
+  			data : data,
+  		}]
+  	});
+  	//var time = new Rickshaw.Fixtures.Time();
+	//var seconds = time.unit('second');
+
+	var axes = new Rickshaw.Graph.Axis.Time( { graph: graph } );
+	var y_ticks = new Rickshaw.Graph.Axis.Y( {
+		graph: graph,
+		orientation: 'left',
+		tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+		element: document.getElementById('y_axis'),
+	} );
+
+  	graph.render();
+  	
+  });
+
 </script>
 </html>
