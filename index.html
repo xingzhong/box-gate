@@ -128,9 +128,12 @@
   });
 
   $("#stress").click(function(){
-  	d3.csv("/data/eqs7day-M1.csv",
+  	d3.csv("/data/eqs7day-M0.txt",
+  	//d3.csv("http://earthquake.usgs.gov/earthquakes/catalogs/eqs7day-M2.5.txt",
   		function (err, data) {
   			//socket.emit("log",  data[0] );
+  			console.log(err);
+  			console.log(data);
   			data.forEach(function(d){
   				
   				d.Datetime = Date.parse(d.Datetime);

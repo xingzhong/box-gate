@@ -114,7 +114,8 @@ io.sockets.on('connection', function (socket) {
     var o = {};
     o.map = function() {
       var date = new Date();
-      date.setTime(this.Datetime.setUTCMinutes(0,0,0));
+      //date.setTime(this.Datetime.setUTCMinutes(0,0,0));
+      date.setTime(this.Datetime.setUTCHours(0,0,0,0));
       emit(date.getTime(), 1);
     };
     o.reduce = function(k, vals) { return vals.length; };
