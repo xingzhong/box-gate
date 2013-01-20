@@ -12,9 +12,8 @@ io.configure(function () {
 
 
 io.sockets.on('connection', function(socket) {
-	socket.on('disconnect', function() {
-		io.sockets.emit('user disconnected');
-	});
+	console.log("connection on");
+	
 	socket.on('keyword', function(key) {
 		console.log(key);
 		twit.stream('statuses/filter', {'track':key}, function(stream) {
