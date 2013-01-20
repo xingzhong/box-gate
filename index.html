@@ -21,6 +21,10 @@
 			bottom: 0;
 			width: 40px;
 		}
+		keyword {
+			color: red;
+			font-style: bold;
+		}
 	</style>
 </head>
 <body>
@@ -32,7 +36,11 @@
 			<button id="stress" class="btn btn-primary btn-large"> stress test </button>
 			<button id="cleanDB" class="btn btn-primary btn-large"> CleanDB </button>
 			<button id="analytical" class="btn btn-primary btn-large"> Analytical </button>
-			<p id="debug"></p>
+			<span id="debug"></span>
+			<hr>
+			<input id="twitterKeyword" value="obama">
+			<button id="twitterSearch" class="btn btn-primary btn-large"> Search Twitter </button>
+			<span id="twitterRate"></span>
 		</div>
 		<ul class= "thumbnails" id="regionTbl">
 			<li class="span4">
@@ -59,8 +67,10 @@
 				</div>
 			</li>
 		</ul>
-
 		<table class="table table-condensed" style="font-size:12px">
+			<tbody id="twitter"> </tbody>
+		</table>
+		<table class="table table-condensed" style="font-size:12px" id="earthTable">
 			<thead>
 				<tr>
 					<th><button class="btn btn-block btn-inverse" id="order1"> Datetime </button></th>
@@ -74,15 +84,22 @@
 			</thead>
 			<tbody id="list"> </tbody>
 		</table>
+
+		
 	</div>
 </body>
 <script src="/socket.io/socket.io.js"></script>
 <script>
   var socket = io.connect('http://box.home:8080');
+  var twitter = io.connect('http://box.home:8888');
   var DATACOUNT = 0;
   var TABLEORDER = "Datetime";
   $("#regionTbl").hide();
   $("#debug").hide();
+  $("#earthTable").hide();
+  $("#twitterSearch").click(function(){ 
+  	twitter.emit("keyword", $("#twitterKeyword").val());
+  });
   $("#order1").click(function(){
   	if (TABLEORDER[0]=="-")
   		TABLEORDER = "Datetime"; 
@@ -164,6 +181,7 @@
   socket.emit("count", {})
   socket.on('list', function (data) { 
 	  $("tbody#list").html("");
+	  $("#earthTable").show();
 	  table = d3.select("tbody#list");
 	  var tr = table.selectAll("tr")
 	  		.data(data)
@@ -247,6 +265,45 @@
 
   	graph.render();
   	
+  });
+
+  $("tbody#twitter").html("");
+  var twitterBuff = [];
+  var count = 0;
+  setInterval(function(){
+  		$("#twitterRate").text(count*6+"/min");
+  		count = 0;
+	}, 10000);
+  
+  twitter.on('news', function(data) {
+  	//console.log(twitterBuff[1]);
+  	count ++;
+  	twitterBuff.push(data);
+  	if (twitterBuff.length > 6){
+  		twitterBuff.shift();}
+  		//console.log(twitterBuff.length);
+  	table = d3.select("tbody#twitter");
+	var tdata = table.selectAll("tr")
+			.data(twitterBuff, function(d){return d.id;});
+	var tr = tdata
+			.enter().append("tr");
+	tr.append('td').attr("class", "span1")
+		.append('img').attr('src', 
+			function(d){return d.user.profile_image_url;});
+	tr.append("td").attr("class", "span1")
+		.text(function(d){return d.created_at;});
+	var re = new RegExp("("+$("#twitterKeyword").val()+")", 'gi');
+	tr.append("td").attr("class", "span3")
+		.html(function(d){
+			//console.log(d.text);
+			return d.text.replace(re,"<keyword> $1 </keyword>");
+		});
+	tr.append("td").attr("class", "span1")
+		.text(function(d){return d.user.name;});
+	tr.append("td").attr('class', "span2")
+		.text(function(d){return d.user.location})
+	tdata.exit().remove();
+	
   });
 
 </script>
