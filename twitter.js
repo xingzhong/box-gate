@@ -33,6 +33,8 @@ var twit = new twitter({
 });
 
 port = process.env.PORT || 3000;
-app.listen(port);
+app.listen(port, function(){
+	console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
+});
 //twit.stream ('statuses/sample', function (stream) {
 //twit.stream('statuses/filter', {'locations':'-122.75,36.8,-121.75,37.8,-74,40,-73,41'}, function(stream) {
