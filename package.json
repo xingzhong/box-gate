@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies" : {
   	"socket.io" : "0.9.x",
+  	"ntwitter" : "0.5.x"
   },
   "engines": {
     "node": "0.8.x",
