@@ -1,8 +1,7 @@
 var twitter = require('ntwitter');
-var express = require("express");
-var app = express();
-var server = require('http').createServer(app);
-var io = require('socket.io').listen(server);
+//var express = require("express");
+var app = express.createServer();
+var io = require('socket.io');
 
 
 // assuming io is the Socket.IO server object
@@ -33,5 +32,7 @@ var twit = new twitter({
 	access_token_secret: 'kLZebpapNT9bQpCYXSoaJJojIpebukyNrjb8HSmVwA'
 });
 
+port = process.env.PORT || 3000;
+app.listen(port);
 //twit.stream ('statuses/sample', function (stream) {
 //twit.stream('statuses/filter', {'locations':'-122.75,36.8,-121.75,37.8,-74,40,-73,41'}, function(stream) {
