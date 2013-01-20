@@ -1,0 +1,182 @@
+<html>
+    <head>
+        <title>Box Data</title>
+        <style>
+        	table { font-size: 12px;}
+        	table.tr{
+        		height: 320px;
+        	}
+        	img.pic { 
+        		width: 48px;
+        		height: 48px;
+        	}
+
+        	td.tweet {
+        		width: 220px;
+        	}
+        	td.location{
+        		width: 80px;
+        	}
+        	td.datetime{
+        		width: 80px;
+        	}
+        	#data1 {
+        		background-color: #ADD8E6;
+        	}
+        	#data2 {
+        		background-color: #D3D3D3;
+        	}
+        	#data3 {
+        		background-color: #FFB6C1;
+        	}
+        	#data4 {
+        		background-color: #B0C4DE;
+        	}
+        </style>
+    </head>
+    <body>
+    	<div class="container">
+    		<div class="page-header">
+	        	<h1>Box Data
+	        		<small> Automatically Streaming Twitter Data </small>
+	        	</h1>
+	        </div>
+	        <div class="row">
+	        	<div class="span6">
+					<table id="data1" class="table "></table>
+	        	</div>
+	        	<div class="span6">
+					<table id="data2" class="table "></table>
+	        	</div>
+	        </div>
+	        <div class="row">
+	        	<div class="span6">
+					<table id="data3" class="table "></table>
+	        	</div>
+	        	<div class="span6">
+					<table id="data4" class="table "></table>
+	        	</div>
+	    	</div>
+    	</div>
+    </body>
+
+    <script src="/jquery-1.8.3.min.js"></script>
+    <script src="/d3.v3.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
+    <script>
+        var ws1 = io.connect("http://ws1.box-capital.com:80");
+        var ws2 = io.connect("http://ws2.box-capital.com:80");
+        var ws3 = io.connect("http://ws3.box-capital.com:80");
+        var ws4 = io.connect("http://ws4.box-capital.com:80");
+        ws1.on('status', function (data) {
+            console.log("ws1" + data.status);
+            ws1.emit("enterUser", "ws1");
+        });
+        ws2.on('status', function (data) {
+            console.log("ws2" + data.status);
+            ws2.emit("enterUser", "ws2");
+        });
+        ws3.on('status', function (data) {
+            console.log("ws3" + data.status);
+            ws3.emit("enterUser", "ws3");
+        });
+        ws4.on('status', function (data) {
+            console.log("ws4" + data.status);
+            ws4.emit("enterUser", "ws4");
+        });
+        ws1.on("userRec", function (data) {
+            console.log(data);
+            $("#who").text(data);
+            ws1.emit("keyword", "nyc");
+        });
+        ws2.on("userRec", function (data) {
+            console.log(data);
+            $("#who").text(data);
+            ws2.emit("keyword", "japan");
+        });
+        ws3.on("userRec", function (data) {
+            console.log(data);
+            $("#who").text(data);
+            ws3.emit("keyword", "china");
+        });
+        ws4.on("userRec", function (data) {
+            console.log(data);
+            $("#who").text(data);
+            ws4.emit("keyword", "paris");
+        });
+        var twitterBuff1 = [];
+        var twitterBuff2 = [];
+        var twitterBuff3 = [];
+        var twitterBuff4 = [];
+        ws1.on("res", function(data){
+            twitterBuff1.push(data);
+            if(twitterBuff1.length>5){ twitterBuff1.shift(); }
+            
+            var table = d3.select("#data1");
+            updateTable(table, twitterBuff1);
+        });	
+        ws2.on("res", function(data){
+            twitterBuff2.push(data);
+            if(twitterBuff2.length>5){ twitterBuff2.shift(); }
+            
+            var table = d3.select("#data2");
+            updateTable(table, twitterBuff2);
+        });
+        ws3.on("res", function(data){
+            twitterBuff3.push(data);
+            if(twitterBuff3.length>5){ twitterBuff3.shift(); }
+            
+            var table = d3.select("#data3");
+            updateTable(table, twitterBuff3);
+        });
+        ws4.on("res", function(data){
+            twitterBuff4.push(data);
+            if(twitterBuff4.length>5){ twitterBuff4.shift(); }
+            
+            var table = d3.select("#data4");
+            updateTable(table, twitterBuff4);
+        });		
+        
+        function updateTable( tselector, tbldata){
+        	var tdata = tselector.selectAll("tr")
+                        .data(tbldata, function(d) {return d.id;});
+            var tr = tdata.enter().append("tr");
+            
+            var header = tr.append("td");
+
+            	header.append("img").attr("class", "pic")
+                .attr("src", function(d) {
+                	if (d && d.user)
+                		return d.user.profile_image_url;
+                });
+
+            	header.append("h6").attr("class", "name")
+	                .text(function(d){
+	                	if (d && d.user)
+	                		return d.user.name;
+	                });
+                
+            tr.append("td").attr("class", "tweet")
+                .text(function(d){
+                	if (d)
+                		return d.text;
+                });
+                
+            tr.append("td").attr("class", "location")
+                .text(function(d){
+                	if (d && d.user)
+                		return d.user.location;
+                });
+                
+            tr.append("td").attr("class", "datetime")
+                .text(function(d){
+                	if (d)
+                		return d.created_at;
+                });
+                
+            tdata.exit().remove();
+        }
+    </script>
+</html>

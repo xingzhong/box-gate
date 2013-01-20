@@ -3,11 +3,11 @@
 */
 
 var express = require('express')
-	   , app = express()
-  	 , server = require('http').createServer(app)
-  	 , io = require('socket.io').listen(server);
+	   , app = express.createServer(express.logger())
+  	 , io = require('socket.io').listen(app);
   
-app.use(express.static(__dirname + "/static"))
+app.use(express.static(__dirname + "/static"));
+app.listen(8080);
 
 var mongoose = require('mongoose');
 mongoose.connect('localhost', 'test');
@@ -25,10 +25,13 @@ var schema = mongoose.Schema({
 });
 var Record = mongoose.model('Record', schema);
 
-server.listen(8080);
+
 
 app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
+});
+app.get('/client', function (req, res) {
+  res.sendfile(__dirname + '/client.html');
 });
 
 io.sockets.on('connection', function (socket) {

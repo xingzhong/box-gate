@@ -92,7 +92,7 @@
 <script>
   var socket = io.connect('http://box.home:8080');
   //var twitter = io.connect('http://box.home:5000');
-  var twitter = io.connect('http://obscure-citadel-7081.herokuapp.com');
+  var twitter = io.connect('http://ws1.box-capital.com');
   var DATACOUNT = 0;
   var TABLEORDER = "Datetime";
   $("#regionTbl").hide();
@@ -276,7 +276,7 @@
   		count = 0;
 	}, 10000);
   
-  twitter.on('news', function(data) {
+  twitter.on('res', function(data) {
   	//console.log(twitterBuff[1]);
   	count ++;
   	twitterBuff.push(data);
@@ -305,6 +305,10 @@
 		.text(function(d){return d.user.location})
 	tdata.exit().remove();
 	
+  });
+
+  twitter.on("status", function(data) {
+  	console.log(data.status);
   });
 
 </script>
