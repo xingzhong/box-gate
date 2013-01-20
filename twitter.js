@@ -1,6 +1,7 @@
 var twitter = require('ntwitter');
-var express = require("express");
-var app = express.createServer(express.logger());
+//var express = require("express");
+//var app = express.createServer(express.logger());
+var app = require("http").createServer();
 var io = require('socket.io').listen(app);
 
 
@@ -13,7 +14,7 @@ io.configure(function () {
 
 io.sockets.on('connection', function(socket) {
 	console.log("connection on");
-	
+
 	socket.on('keyword', function(key) {
 		console.log(key);
 		twit.stream('statuses/filter', {'track':key}, function(stream) {
