@@ -1,9 +1,9 @@
 var twitter = require('ntwitter');
 var express = require("express");
-var app = express.createServer();
-var io = require('socket.io');
+var app = express();
+var socket = require('socket.io');
 
-
+io = socket.listen(app);
 // assuming io is the Socket.IO server object
 io.configure(function () { 
   io.set("transports", ["xhr-polling"]); 
