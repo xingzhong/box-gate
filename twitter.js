@@ -32,7 +32,7 @@ var twit = new twitter({
 	access_token_secret: 'kLZebpapNT9bQpCYXSoaJJojIpebukyNrjb8HSmVwA'
 });
 
-port = process.env.PORT || 3000;
+port = process.env.PORT || 8080;
 app.listen(port, function(){
 	console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
