@@ -1,9 +1,21 @@
 var twitter = require('ntwitter');
 //var express = require("express");
 //var app = express.createServer(express.logger());
-var app = require("http").createServer();
+var app = require("http").createServer(handler);
 var io = require('socket.io').listen(app);
 
+function handler (req, res) {
+  fs.readFile(__dirname + '/index.html',
+  function (err, data) {
+    if (err) {
+      res.writeHead(500);
+      return res.end('Error loading index.html');
+    }
+
+    res.writeHead(200);
+    res.end(data);
+  });
+}
 
 // assuming io is the Socket.IO server object
 io.configure(function () { 
@@ -14,7 +26,6 @@ io.configure(function () {
 
 io.sockets.on('connection', function(socket) {
 	console.log("connection on");
-
 	socket.on('keyword', function(key) {
 		console.log(key);
 		twit.stream('statuses/filter', {'track':key}, function(stream) {
