@@ -1,6 +1,6 @@
 var twitter = require('ntwitter');
 var express = require("express");
-var app = express();
+var app = express.createServer(express.logger());
 var socket = require('socket.io');
 
 io = socket.listen(app);
