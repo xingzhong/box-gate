@@ -1,9 +1,9 @@
 var twitter = require('ntwitter');
 var express = require("express");
 var app = express.createServer(express.logger());
-var socket = require('socket.io');
+var io = require('socket.io').listen(app);
 
-io = socket.listen(app);
+
 // assuming io is the Socket.IO server object
 io.configure(function () { 
   io.set("transports", ["xhr-polling"]); 
@@ -32,7 +32,7 @@ var twit = new twitter({
 	access_token_secret: 'kLZebpapNT9bQpCYXSoaJJojIpebukyNrjb8HSmVwA'
 });
 
-port = process.env.PORT || 8080;
+port = process.env.PORT || 5000;
 app.listen(port, function(){
 	console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
 });
