@@ -43,18 +43,26 @@
 	        </div>
 	        <div class="row">
 	        	<div class="span6">
-					<table id="data1" class="table "></table>
+					<table id="data1" class="table ">
+						<caption id="data1_title"></caption>
+					</table>
 	        	</div>
 	        	<div class="span6">
-					<table id="data2" class="table "></table>
+					<table id="data2" class="table ">
+						<caption id="data2_title"></caption>
+					</table>
 	        	</div>
 	        </div>
 	        <div class="row">
 	        	<div class="span6">
-					<table id="data3" class="table "></table>
+					<table id="data3" class="table ">
+						<caption id="data3_title"></caption>
+					</table>
 	        	</div>
 	        	<div class="span6">
-					<table id="data4" class="table "></table>
+					<table id="data4" class="table ">
+						<caption id="data4_title"></caption>
+					</table>
 	        	</div>
 	    	</div>
     	</div>
@@ -90,21 +98,25 @@
             console.log(data);
             $("#who").text(data);
             ws1.emit("keyword", "nyc");
+            $("#data1_title").text("NYC");
         });
         ws2.on("userRec", function (data) {
             console.log(data);
             $("#who").text(data);
             ws2.emit("keyword", "japan");
+            $("#data2_title").text("Japan");
         });
         ws3.on("userRec", function (data) {
             console.log(data);
             $("#who").text(data);
             ws3.emit("keyword", "china");
+            $("#data3_title").text("China");
         });
         ws4.on("userRec", function (data) {
             console.log(data);
             $("#who").text(data);
             ws4.emit("keyword", "paris");
+            $("#data4_title").text("Paris");
         });
         var twitterBuff1 = [];
         var twitterBuff2 = [];
