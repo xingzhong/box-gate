@@ -4,6 +4,14 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
+
+// assuming io is the Socket.IO server object
+io.configure(function () { 
+  io.set("transports", ["xhr-polling"]); 
+  io.set("polling duration", 10); 
+});
+
+
 io.sockets.on('connection', function(socket) {
 	socket.on('disconnect', function() {
 		io.sockets.emit('user disconnected');
