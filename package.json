@@ -4,7 +4,7 @@
   "dependencies" : {
   	"socket.io" : "0.9.x",
   	"ntwitter" : "0.5.x",
-  	"express" : "3.0.x"
+  	"express" : "~2.5.8"
   },
   "engines": {
     "node": "0.8.x",
