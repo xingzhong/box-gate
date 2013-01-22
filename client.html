@@ -2,7 +2,7 @@
     <head>
         <title>Box Data</title>
         <style>
-        	table { font-size: 12px;}
+        	table { font-size: 14px;}
         	table.tr{
         		height: 320px;
         	}
@@ -11,14 +11,7 @@
         		height: 48px;
         	}
 
-        	td.tweet {
-        		width: 220px;
-        	}
-        	td.location{
-        		width: 80px;
-        	}
         	td.datetime{
-        		width: 80px;
         	}
         	#data1 {
         		background-color: #ADD8E6;
@@ -38,33 +31,48 @@
     	<div class="container">
     		<div class="page-header">
 	        	<h1>Box Data
-	        		<small> Automatically Streaming Twitter Data </small>
+	        		<small> Automatically Streaming Twitter Data v0.3</small>
+                    <button id="stop" class="btn btn-danger"> STOP </button>
 	        	</h1>
 	        </div>
 	        <div class="row">
-	        	<div class="span6">
+	        	<div class="span3">
 					<table id="data1" class="table ">
-						<caption id="data1_title"></caption>
+                        <caption>
+                            <button id="data1_status" class="btn">
+                                <h5 id="data1_title"></h5>
+                            </button>
+                        </caption>
 					</table>
 	        	</div>
-	        	<div class="span6">
+	        	<div class="span3">
 					<table id="data2" class="table ">
-						<caption id="data2_title"></caption>
+                        <caption>
+                            <button id="data2_status" class="btn">
+                                <h5 id="data2_title"></h5>
+                            </button>
+                        </caption>
 					</table>
 	        	</div>
+                <div class="span3">
+                    <table id="data3" class="table ">
+                        <caption>
+                            <button id="data3_status" class="btn">
+                                <h5 id="data3_title"></h5>
+                            </button>
+                        </caption>
+                    </table>
+                </div>
+                <div class="span3">
+                    <table id="data4" class="table ">
+                        <caption>
+                            <button id="data4_status" class="btn">
+                                <h5 id="data4_title"></h5>
+                            </button>
+                        </caption>
+                    </table>
+                </div>
 	        </div>
-	        <div class="row">
-	        	<div class="span6">
-					<table id="data3" class="table ">
-						<caption id="data3_title"></caption>
-					</table>
-	        	</div>
-	        	<div class="span6">
-					<table id="data4" class="table ">
-						<caption id="data4_title"></caption>
-					</table>
-	        	</div>
-	    	</div>
     	</div>
     </body>
 
@@ -78,6 +86,19 @@
         var ws2 = io.connect("http://ws2.box-capital.com:80");
         var ws3 = io.connect("http://ws3.box-capital.com:80");
         var ws4 = io.connect("http://ws4.box-capital.com:80");
+        $("#stop").click(function(){
+            ws1.emit("stop", {});
+            ws2.emit("stop", {});
+            ws3.emit("stop", {});
+            ws4.emit("stop", {});
+            if ($("#stop").hasClass("disabled")) {
+                $("#stop").removeClass("disabled");
+            }
+            else{
+                $("#stop").addClass("disabled");
+            }
+        });
+
         ws1.on('status', function (data) {
             console.log("ws1" + data.status);
             ws1.emit("enterUser", "ws1");
@@ -125,28 +146,48 @@
         ws1.on("res", function(data){
             twitterBuff1.push(data);
             if(twitterBuff1.length>5){ twitterBuff1.shift(); }
-            
+            if($("#data1_status").hasClass("btn-primary")) {
+                $("#data1_status").removeClass("btn-primary");
+            }
+            else{
+                $("#data1_status").addClass("btn-primary");
+            }
             var table = d3.select("#data1");
             updateTable(table, twitterBuff1);
         });	
         ws2.on("res", function(data){
             twitterBuff2.push(data);
             if(twitterBuff2.length>5){ twitterBuff2.shift(); }
-            
+            if($("#data2_status").hasClass("btn-primary")) {
+                $("#data2_status").removeClass("btn-primary");
+            }
+            else{
+                $("#data2_status").addClass("btn-primary");
+            }
             var table = d3.select("#data2");
             updateTable(table, twitterBuff2);
         });
         ws3.on("res", function(data){
             twitterBuff3.push(data);
             if(twitterBuff3.length>5){ twitterBuff3.shift(); }
-            
+            if($("#data3_status").hasClass("btn-primary")) {
+                $("#data3_status").removeClass("btn-primary");
+            }
+            else{
+                $("#data3_status").addClass("btn-primary");
+            }
             var table = d3.select("#data3");
             updateTable(table, twitterBuff3);
         });
         ws4.on("res", function(data){
             twitterBuff4.push(data);
             if(twitterBuff4.length>5){ twitterBuff4.shift(); }
-            
+            if($("#data4_status").hasClass("btn-primary")) {
+                $("#data4_status").removeClass("btn-primary");
+            }
+            else{
+                $("#data4_status").addClass("btn-primary");
+            }
             var table = d3.select("#data4");
             updateTable(table, twitterBuff4);
         });		
@@ -169,23 +210,29 @@
 	                	if (d && d.user)
 	                		return d.user.name;
 	                });
-                
+            /*    
             tr.append("td").attr("class", "tweet")
                 .text(function(d){
                 	if (d)
                 		return d.text;
                 });
                 
+            
             tr.append("td").attr("class", "location")
                 .text(function(d){
                 	if (d && d.user)
                 		return d.user.location;
                 });
+            */
                 
             tr.append("td").attr("class", "datetime")
                 .text(function(d){
-                	if (d)
-                		return d.created_at;
+                	if (d){
+                        date = new Date();
+                        date.setTime(Date.parse(d.created_at));
+                        return date.toLocaleTimeString();
+                    }
+                		
                 });
                 
             tdata.exit().remove();

@@ -1,0 +1,316 @@
+<html>
+<head>
+	<link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet"></link>
+	<script src="/jquery-1.8.3.min.js"></script>
+	<script src="/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/d3.v3.min.js"></script>
+	<script src="/rickshaw.min.js"></script>
+	<link rel="stylesheet" href="/rickshaw.min.css">
+	<style>
+		#chart_container{
+			position: relative;
+		}
+
+		#chart{
+			position: relative;
+			left: 40px;
+		}
+		#y_axis {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			width: 40px;
+		}
+		keyword {
+			color: red;
+			font-style: bold;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="hero-unit"> 
+			<h1> WaterFlow </h1>
+			<p> 流水 </p>
+			<button id="single" class="btn btn-primary btn-large"> single test </button>
+			<button id="stress" class="btn btn-primary btn-large"> stress test </button>
+			<button id="cleanDB" class="btn btn-primary btn-large"> CleanDB </button>
+			<button id="analytical" class="btn btn-primary btn-large"> Analytical </button>
+			<span id="debug"></span>
+			<hr>
+			<input id="twitterKeyword" value="obama">
+			<button id="twitterSearch" class="btn btn-primary btn-large"> Search Twitter </button>
+			<span id="twitterRate"></span>
+		</div>
+		<ul class= "thumbnails" id="regionTbl">
+			<li class="span4">
+				<div class="thumbnail">
+					<h3> top region </h3>
+					<table class="table table-condensed" >
+						<thead>
+							<tr>
+								<th> region </th>
+								<th> # </th>
+							</tr>
+						</thead>
+						<tbody id="topTable"></tbody>
+					</table>
+				</div>
+			</li>
+			<li class="span8">
+				<div class="thumbnail">
+					<h3> Histogram </h3>
+					<div id="chart_container">
+						<div id="y_axis"></div>
+						<div id="chart"></div>
+					</div>
+				</div>
+			</li>
+		</ul>
+		<!--
+		<table class="table table-condensed" style="font-size:12px">
+			<tbody id="twitter"> </tbody>
+		</table>
+		<table class="table table-condensed" style="font-size:12px" id="earthTable">
+			<thead>
+				<tr>
+					<th><button class="btn btn-block btn-inverse" id="order1"> Datetime </button></th>
+					<th><button class="btn btn-block btn-inverse" id="order2"> Depth </button></th>
+					<th> Lat</th>
+					<th> Lon</th>
+					<th><button class="btn btn-block btn-inverse" id="order3"> Magnitude </button></th>
+					<th> Region</th>
+					<th> Operator </th>
+				</tr>
+			</thead>
+			<tbody id="list"> </tbody>
+		</table>
+		-->
+		
+	</div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io.connect('http://box.home:8080');
+  //var twitter = io.connect('http://box.home:5000');
+  var twitter = io.connect('http://ws1.box-capital.com');
+  var DATACOUNT = 0;
+  var TABLEORDER = "Datetime";
+  $("#regionTbl").hide();
+  $("#debug").hide();
+  $("#earthTable").hide();
+  $("#twitterSearch").click(function(){ 
+  	twitter.emit("keyword", $("#twitterKeyword").val());
+  });
+  $("#order1").click(function(){
+  	if (TABLEORDER[0]=="-")
+  		TABLEORDER = "Datetime"; 
+  	else
+  		TABLEORDER = "-Datetime"; 
+  	socket.emit("listready", TABLEORDER);
+  });
+  $("#order2").click(function(){ 
+  	if (TABLEORDER[0]=="-")
+  		TABLEORDER = "Depth"; 
+  	else
+  		TABLEORDER = "-Depth"; 
+  	socket.emit("listready", TABLEORDER);
+  });
+  $("#order3").click(function(){ 
+  	if (TABLEORDER[0]=="-")
+  		TABLEORDER = "Magnitude"; 
+  	else
+  		TABLEORDER = "-Magnitude"; 
+  	socket.emit("listready", TABLEORDER); 
+  });
+  $("#analytical").click(function(){
+  	socket.emit("mapreduce1", {});
+  	socket.emit("mapreduce2", {});
+  });
+  $("#cleanDB").click(function(){
+  	socket.emit("cleanDB", {});
+  });
+  $("#single").click(function(){
+	  console.log("log");
+	  socket.emit("log",  { 
+	  	Datetime: Date.parse("Sunday, January 13, 2013 18:25:13 UTC"),
+	  	Depth: parseFloat("117.00"),
+	  	Eqid: "13013005", 
+	  	Lat: parseFloat("18.5111"),
+	  	Lon: parseFloat("-63.9692"),
+	  	Magnitude: parseFloat("2.8") , 
+	  	NST: parseInt("5"),
+	  	Region: "Virgin Islands region",
+	  	Src: "pr",
+	  	Version: parseInt("0"),
+	  });
+  });
+
+  $("#stress").click(function(){
+  	d3.csv("/data/eqs7day-M0.txt",
+  	//d3.csv("http://earthquake.usgs.gov/earthquakes/catalogs/eqs7day-M2.5.txt",
+  		function (err, data) {
+  			//socket.emit("log",  data[0] );
+  			console.log(err);
+  			console.log(data);
+  			data.forEach(function(d){
+  				
+  				d.Datetime = Date.parse(d.Datetime);
+  				d.Depth = parseFloat(d.Depth);
+  				d.Lat = parseFloat(d.Lat);
+  				d.Lon = parseFloat(d.Lon);
+  				d.Magnitude = parseFloat(d.Magnitude);
+  				d.NST = parseInt(d.NST);
+  				d.Version = d.Version;
+  				
+  			})
+			var index = 0;
+			DATACOUNT = data.length;
+			var timer = setInterval( 
+				function(){
+					socket.emit("log",  data[index] );
+					//console.log(data[index]);
+					//console.log(index);
+					index++;
+					if (index >= data.length) {
+						clearInterval(timer);
+					}
+					
+				}, 1);
+		});
+  });
+  socket.emit("listready", TABLEORDER);
+  socket.emit("count", {})
+  socket.on('list', function (data) { 
+	  $("tbody#list").html("");
+	  $("#earthTable").show();
+	  table = d3.select("tbody#list");
+	  var tr = table.selectAll("tr")
+	  		.data(data)
+	  		.enter().append("tr");
+
+	  tr.append("td")
+	  	.text(function(d){return d.Datetime;});
+	  tr.append("td")
+	  	.text(function(d){return d.Depth;});
+	  tr.append("td")
+	  	.text(function(d){return d.Lat;});
+	  tr.append("td")
+	  	.text(function(d){return d.Lon;});
+	  tr.append("td")
+	  	.text(function(d){return d.Magnitude;});
+	  tr.append("td")
+	  	.text(function(d){return d.Region;});
+
+	  tr.append("td")
+	  	.append("i")
+	  	.on("click", function(d){
+	  		console.log(d._id);
+	  		socket.emit("delRec", d._id);
+	  	})
+	  	.attr("class", "icon-remove");
+	  
+	  setTimeout(function(){
+	  		console.log("list ordered by "+ TABLEORDER);
+		  	socket.emit("listready", TABLEORDER);
+	  }, 10000);
+  });
+  socket.on('countReady', function (data) { 
+  	$("#debug").show(500);
+  	$("#debug").text("total num " + data + " / " + DATACOUNT);
+  	setTimeout(function(){
+		  socket.emit("count", {})
+	  }, 1000);
+  });
+
+  socket.on('mapreduce1Reday', function (data) { 
+  	//console.log(data);
+  	$("#regionTbl").show(2000);
+  	var table = d3.select("#topTable");
+  	table.html("");
+  	table.attr("style", "font-size:12px;");
+  	var tr = table.selectAll("tr")
+  				.data(data)
+  				.enter().append("tr");
+  	tr.append("td")
+  		.text(function(d) {return d._id;});
+  	tr.append("td")
+  		.text(function(d) {return d.value;});
+  });
+
+
+  socket.on('mapreduce2Reday', function (data) { 
+  	
+  	data.forEach(function(d){
+  		d.x = d._id/1000;
+  		d.y = d.value;
+  	});
+  	console.log(data);
+  	var graph = new Rickshaw.Graph({
+  		element: document.querySelector("#chart"),
+  		renderer: 'bar',
+  		series: [{
+  			color : 'steelblue',
+  			data : data,
+  		}]
+  	});
+  	//var time = new Rickshaw.Fixtures.Time();
+	//var seconds = time.unit('second');
+
+	var axes = new Rickshaw.Graph.Axis.Time( { graph: graph } );
+	var y_ticks = new Rickshaw.Graph.Axis.Y( {
+		graph: graph,
+		orientation: 'left',
+		tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+		element: document.getElementById('y_axis'),
+	} );
+
+  	graph.render();
+  	
+  });
+
+  $("tbody#twitter").html("");
+  var twitterBuff = [];
+  var count = 0;
+  setInterval(function(){
+  		$("#twitterRate").text(count*6+"/min");
+  		count = 0;
+	}, 10000);
+  
+  twitter.on('res', function(data) {
+  	//console.log(twitterBuff[1]);
+  	count ++;
+  	twitterBuff.push(data);
+  	if (twitterBuff.length > 6){
+  		twitterBuff.shift();}
+  		//console.log(twitterBuff.length);
+  	table = d3.select("tbody#twitter");
+	var tdata = table.selectAll("tr")
+			.data(twitterBuff, function(d){return d.id;});
+	var tr = tdata
+			.enter().append("tr");
+	tr.append('td').attr("class", "span1")
+		.append('img').attr('src', 
+			function(d){return d.user.profile_image_url;});
+	tr.append("td").attr("class", "span1")
+		.text(function(d){return d.created_at;});
+	var re = new RegExp("("+$("#twitterKeyword").val()+")", 'gi');
+	tr.append("td").attr("class", "span3")
+		.html(function(d){
+			//console.log(d.text);
+			return d.text.replace(re,"<keyword> $1 </keyword>");
+		});
+	tr.append("td").attr("class", "span1")
+		.text(function(d){return d.user.name;});
+	tr.append("td").attr('class', "span2")
+		.text(function(d){return d.user.location})
+	tdata.exit().remove();
+	
+  });
+
+  twitter.on("status", function(data) {
+  	console.log(data.status);
+  });
+
+</script>
+</html>
